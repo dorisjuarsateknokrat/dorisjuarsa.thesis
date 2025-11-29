@@ -1,0 +1,136 @@
+from PIL import Image, ImageDraw
+import shutil
+import glob
+import os
+import time
+from datetime import datetime
+from concurrent.futures import ProcessPoolExecutor
+
+# Root dataset lama
+DATASET_ROOT = "/home/dorisjuarsa/Apps/DorisjuarsaProgramTesis/Datasets/DorisjuarsaDatasetBalance"
+# DATASET_ROOT = "/home/dorisjuarsa/Apps/DorisjuarsaProgramTesis/Datasets/datasetDorisjuarsaBalance_Undersampling_50pct_20250927_1426"
+
+# Tambahkan timestamp agar unik
+timestamp = datetime.now().strftime("%y%m%d%H%M")
+OUTPUT_ROOT = DATASET_ROOT + f"_360x360_{timestamp}"
+
+# Target size
+TARGET_SIZE = (360, 360)
+
+# Buat struktur folder YOLO + boundingbox di root baru
+for split in ["train", "val", "test"]:
+    os.makedirs(os.path.join(OUTPUT_ROOT, "images", split), exist_ok=True)
+    os.makedirs(os.path.join(OUTPUT_ROOT, "labels", split), exist_ok=True)
+    os.makedirs(os.path.join(OUTPUT_ROOT, "boundingbox", split), exist_ok=True)
+
+# Copy data.yaml ke folder baru
+yaml_src = os.path.join(DATASET_ROOT, "data.yaml")
+yaml_dst = os.path.join(OUTPUT_ROOT, "data.yaml")
+if os.path.exists(yaml_src):
+    shutil.copy(yaml_src, yaml_dst)
+
+# Worker untuk resize + update label
+
+
+def process_one(file_info):
+    img_path, label_path, out_img_path, out_label_path, out_bb_path = file_info
+
+    with Image.open(img_path) as img:
+        orig_w, orig_h = img.size
+        img_resized = img.resize(TARGET_SIZE, Image.LANCZOS)
+        img_resized.save(out_img_path)
+
+    new_lines = []
+    if os.path.exists(label_path):
+        with open(label_path, "r") as f:
+            lines = f.readlines()
+
+        for line in lines:
+            parts = line.strip().split()
+            if len(parts) != 5:
+                continue
+            cls, x, y, w, h = parts
+            cls = int(cls)
+            x, y, w, h = map(float, [x, y, w, h])
+
+            # konversi ke pixel asli
+            x_pixel = x * orig_w
+            y_pixel = y * orig_h
+            w_pixel = w * orig_w
+            h_pixel = h * orig_h
+
+            # konversi ke normalisasi baru
+            x_new = x_pixel / TARGET_SIZE[0]
+            y_new = y_pixel / TARGET_SIZE[1]
+            w_new = w_pixel / TARGET_SIZE[0]
+            h_new = h_pixel / TARGET_SIZE[1]
+
+            new_lines.append(
+                f"{cls} {x_new:.6f} {y_new:.6f} {w_new:.6f} {h_new:.6f}\n")
+
+        with open(out_label_path, "w") as f:
+            f.writelines(new_lines)
+
+    # Buat bounding box preview
+    with Image.open(out_img_path) as img:
+        draw = ImageDraw.Draw(img)
+        w, h = img.size
+        for line in new_lines:
+            cls, x, y, bw, bh = line.strip().split()
+            x, y, bw, bh = map(float, [x, y, bw, bh])
+
+            # konversi normalisasi -> pixel
+            x_pixel = x * w
+            y_pixel = y * h
+            bw_pixel = bw * w
+            bh_pixel = bh * h
+
+            x_min = int(x_pixel - bw_pixel / 2)
+            y_min = int(y_pixel - bh_pixel / 2)
+            x_max = int(x_pixel + bw_pixel / 2)
+            y_max = int(y_pixel + bh_pixel / 2)
+
+            draw.rectangle([x_min, y_min, x_max, y_max],
+                           outline="red", width=2)
+            draw.text((x_min, y_min - 10), cls, fill="red")
+
+        img.save(out_bb_path)
+
+
+# Siapkan semua file untuk diproses
+all_files = []
+for split in ["train", "val", "test"]:
+    img_dir = os.path.join(DATASET_ROOT, "images", split)
+    label_dir = os.path.join(DATASET_ROOT, "labels", split)
+
+    out_img_dir = os.path.join(OUTPUT_ROOT, "images", split)
+    out_label_dir = os.path.join(OUTPUT_ROOT, "labels", split)
+    out_bb_dir = os.path.join(OUTPUT_ROOT, "boundingbox", split)
+
+    for img_path in glob.glob(os.path.join(img_dir, "*.*")):
+        filename = os.path.basename(img_path)
+        label_path = os.path.join(
+            label_dir, os.path.splitext(filename)[0] + ".txt")
+
+        out_img_path = os.path.join(out_img_dir, filename)
+        out_label_path = os.path.join(
+            out_label_dir, os.path.splitext(filename)[0] + ".txt")
+        out_bb_path = os.path.join(out_bb_dir, filename)
+
+        all_files.append((img_path, label_path, out_img_path,
+                         out_label_path, out_bb_path))
+
+
+# Jalankan multiproses dengan timer
+print(f"🚀 Memproses {len(all_files)} file dengan multiprocessing...")
+start_time = time.time()
+
+with ProcessPoolExecutor() as executor:
+    list(executor.map(process_one, all_files))
+
+end_time = time.time()
+elapsed = end_time - start_time
+
+print("✅ Semua gambar berhasil di-resize ke 360x360, label di-update, dan bounding box digenerate.")
+print(f"Hasil tersimpan di: {OUTPUT_ROOT}")
+print(f"⏱️ Execution time: {elapsed:.2f} detik")
