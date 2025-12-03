@@ -1,0 +1,11 @@
+path: /home/dorisjuarsa/Public/DorisjuarsaProgramTrainingTesis/Datasets/DorisjuarsaDatasetBalance360x360RotateScale15_2509301304_CLAHE_clip2.0_tile8_2509301512
+test: images/test
+train: images/train
+val: images/val
+
+names:
+  0: BAS
+  1: EOS
+  2: NEU
+  3: LIM
+  4: MON
