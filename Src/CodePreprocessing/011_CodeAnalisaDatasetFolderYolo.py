@@ -12,7 +12,7 @@ YOLO_DIR = (
     / ".."
     / "Data"
     / "Datasets"
-    / "DorisjuarsaDatasetYolo"
+    / "DorisjuarsaDatasetYoloBaseSize"
 ).resolve()
 
 # ==================================================
