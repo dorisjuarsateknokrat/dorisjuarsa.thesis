@@ -102,5 +102,14 @@ Data/DataModels/*
 !Data/DataModels/.gitkeep
 
 yolo11n.pt
+yolo11s.pt
+yolo11m.pt
+yolo11l.pt
+yolo11x.pt
+
+yolo8n.pt
 yolo8s.pt
+yolo8m.pt
+yolo8l.pt
+yolo8x.pt
 
