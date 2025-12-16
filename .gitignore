@@ -101,3 +101,6 @@ Data/Datasets/*
 Data/DataModels/*
 !Data/DataModels/.gitkeep
 
+yolo11n.pt
+yolo8s.pt
+
