@@ -115,3 +115,4 @@ yolov8x.pt
 
 Src/OutputTesting/*
 Data/DataTesting/*
+!Data/DataTesting/Input/HasilCaptureCamera/.gitkeep
