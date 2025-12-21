@@ -41,8 +41,8 @@ RUNS_TASK = "detect"                   # detect / segment / classify
 # TRAINING CONFIG
 # ==================================================
 imgsz = 640
-epochs = 100
-batch = 16
+epochs = 60
+batch = 32
 device = 0
 
 model_name = "yolov8s.pt"
