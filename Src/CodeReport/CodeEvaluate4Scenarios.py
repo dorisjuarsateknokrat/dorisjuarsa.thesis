@@ -48,6 +48,7 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # ==================================================
 MODEL_STANDARD = (
     MODELS_DIR
+    / "runs"
     / "DorisjuarsaDatasetYoloBaseSizeToScale0_25_640_small"
     / "weights"
     / "best.pt"
@@ -55,6 +56,7 @@ MODEL_STANDARD = (
 
 MODEL_CLAHE = (
     MODELS_DIR
+    / "runs"
     / "DorisjuarsaDatasetYoloBaseSizeToScale0_25Clahe_640_small"
     / "weights"
     / "best.pt"
