@@ -58,7 +58,7 @@ MIN_WRITER_FPS = 5.0
 MAX_WRITER_FPS = 60.0
 
 BUTTON_WIDTH = 190
-BUTTON_HEIGHT = 40
+BUTTON_HEIGHT = 30
 
 
 # ---------------- Helpers ----------------
@@ -749,10 +749,8 @@ class MainWindow(QMainWindow):
         banner_text = """
         <div style="text-align:center;">
             <div style="font-size:16pt;">Model Deteksi Objek Real-Time Untuk Klasifikasi Otomatis Subtipe Leukosit Pada Citra Mikroskopis Darah Dengan YOLOv8</div>
-            <div style="font-size:11pt; margin-top:8px;">Dibuat oleh: Doris Juarsa</div>
-            <div style="font-size:11pt; margin-top:8px;">NPM: 24321025</div>
-            <div style="font-size:11pt; margin-top:4px;">Pembimbing: Dr. Erliyan Redy Susanto, S.Kom., M.Kom.</div>
-            <div style="font-size:11pt; margin-top:4px;">Penguji 1: Dr. Rohmat Indra Borman, M.Kom.</div>
+            <div style="font-size:11pt; margin-top:4px;">Dibuat oleh: Doris Juarsa || NPM: 24321025</div>
+            <div style="font-size:11pt; margin-top:4px;">Pembimbing: Dr. Erliyan Redy Susanto, S.Kom., M.Kom. || Penguji 1: Dr. Rohmat Indra Borman, M.Kom.</div>
         </div>
         """
         self.banner = QLabel()
@@ -763,7 +761,7 @@ class MainWindow(QMainWindow):
             background-color: #f8f8f8;
             border: 1px solid #ccc;
             border-radius: 8px;
-            padding: 12px;
+            padding: 4px;
         """)
 
         # Buttons
@@ -804,7 +802,7 @@ class MainWindow(QMainWindow):
                 background-color: #f8f8f8;
                 border: 1px solid #ccc;
                 border-radius: 8px;
-                padding: 12px;
+                padding: 2px;
             }
         """)
 
