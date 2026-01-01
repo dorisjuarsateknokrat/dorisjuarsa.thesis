@@ -15,11 +15,6 @@ Microscope GUI - Realtime Preview + REC Toggle (Thesis-ready)
 - Session folder:
   <YYYYMMDD_HHMMSS>_cam<idx>_<modelstem>_claheON|OFF
 - Cross-OS paths via pathlib
-
-MOD (requested):
-- Watermark ONLY on exported video (session.mp4):
-  - class counts + total
-  - inference_ms and fps_inst (same values written to CSV)
 """
 
 from __future__ import annotations
@@ -372,66 +367,6 @@ class InferenceWorker(QThread):
             counts[n] = counts.get(n, 0) + 1
         return counts
 
-    # ===== MOD: watermark only for export video =====
-    def _overlay_watermark_for_export(self, frame_bgr: np.ndarray, counts: dict,
-                                      inference_ms: float, fps_inst: float) -> np.ndarray:
-        """
-        Watermark ONLY untuk video export (session.mp4):
-        - Menampilkan inference_ms & fps_inst
-        - Menampilkan count tiap class + total
-        Tidak mengubah preview UI (karena hanya dipakai untuk writer).
-        """
-        if frame_bgr is None:
-            return frame_bgr
-
-        out = frame_bgr.copy()
-        h, w = out.shape[:2]
-
-        line1 = f"inference_ms={inference_ms:.3f} | fps_inst={fps_inst:.3f}"
-
-        total_objects = 0
-        parts = []
-        for cn in self.class_names:
-            v = int(counts.get(cn, 0))
-            total_objects += v
-            parts.append(f"{cn}={v}")
-        parts.append(f"total={total_objects}")
-
-        max_per_line = 4
-        count_lines = []
-        for i in range(0, len(parts), max_per_line):
-            count_lines.append(" | ".join(parts[i:i + max_per_line]))
-
-        lines = [line1] + count_lines
-
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        font_scale = 0.55
-        thickness = 1
-        pad = 8
-        line_gap = 6
-
-        text_sizes = [cv2.getTextSize(t, font, font_scale, thickness)[0] for t in lines]
-        block_w = max(ts[0] for ts in text_sizes) + pad * 2
-        block_h = sum(ts[1] for ts in text_sizes) + pad * 2 + line_gap * (len(lines) - 1)
-
-        x0 = 10
-        y0 = h - 10 - block_h
-        x0 = max(0, min(x0, w - block_w))
-        y0 = max(0, min(y0, h - block_h))
-
-        overlay = out.copy()
-        cv2.rectangle(overlay, (x0, y0), (x0 + block_w, y0 + block_h), (0, 0, 0), -1)
-        alpha = 0.45
-        out = cv2.addWeighted(overlay, alpha, out, 1 - alpha, 0)
-
-        y = y0 + pad
-        for t, (tw, th) in zip(lines, text_sizes):
-            y_text = y + th
-            cv2.putText(out, t, (x0 + pad, y_text), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
-            y = y_text + line_gap
-
-        return out
-
     def _make_session_dir(self) -> Path:
         # Root: Data/DataTesting/Output/Realtime
         out_root = (self.project_root / "Data" / "DataTesting" /
@@ -646,16 +581,11 @@ class InferenceWorker(QThread):
 
                         self._csv_writer.writerow(row)
 
-                        # ===== MOD: watermark ONLY on exported video frames =====
-                        ann_for_video_bgr_wm = self._overlay_watermark_for_export(
-                            ann_for_video_bgr, counts, inference_ms, fps_inst
-                        )
-
                         if self._writer is None:
-                            self._buffer_frames.append(ann_for_video_bgr_wm)
+                            self._buffer_frames.append(ann_for_video_bgr)
                             self._init_writer_if_ready()
                         else:
-                            self._writer.write(ann_for_video_bgr_wm)
+                            self._writer.write(ann_for_video_bgr)
 
                     QThread.msleep(1)
 
