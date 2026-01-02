@@ -410,9 +410,11 @@ class InferenceWorker(QThread):
         pad = 8
         line_gap = 6
 
-        text_sizes = [cv2.getTextSize(t, font, font_scale, thickness)[0] for t in lines]
+        text_sizes = [cv2.getTextSize(t, font, font_scale, thickness)[
+            0] for t in lines]
         block_w = max(ts[0] for ts in text_sizes) + pad * 2
-        block_h = sum(ts[1] for ts in text_sizes) + pad * 2 + line_gap * (len(lines) - 1)
+        block_h = sum(ts[1] for ts in text_sizes) + \
+            pad * 2 + line_gap * (len(lines) - 1)
 
         x0 = 10
         y0 = h - 10 - block_h
@@ -420,14 +422,16 @@ class InferenceWorker(QThread):
         y0 = max(0, min(y0, h - block_h))
 
         overlay = out.copy()
-        cv2.rectangle(overlay, (x0, y0), (x0 + block_w, y0 + block_h), (0, 0, 0), -1)
+        cv2.rectangle(overlay, (x0, y0), (x0 + block_w,
+                      y0 + block_h), (0, 0, 0), -1)
         alpha = 0.45
         out = cv2.addWeighted(overlay, alpha, out, 1 - alpha, 0)
 
         y = y0 + pad
         for t, (tw, th) in zip(lines, text_sizes):
             y_text = y + th
-            cv2.putText(out, t, (x0 + pad, y_text), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
+            cv2.putText(out, t, (x0 + pad, y_text), font, font_scale,
+                        (255, 255, 255), thickness, cv2.LINE_AA)
             y = y_text + line_gap
 
         return out
